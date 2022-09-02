@@ -19,63 +19,24 @@ struct Account
     char address[50];
 };
 
-// void createAccount(int sockfd)
-// {
-//     struct Account a;
-//     char buff[MAX];
-//     char address[50];
-//     bzero(buff, sizeof(buff));
-//     printf("Enter Account Number: ");
-//     scanf("%s", buff);
-//     strcpy(a.accNo, buff);
-//     bzero(buff, sizeof(buff));
-//     printf("Enter account holder's first name: ");
-//     scanf("%s", buff);
-//     strcpy(a.holder, buff);
-//     strcat(a.holder, " ");
-//     bzero(buff, sizeof(buff));
-//     printf("Enter account holder's last name: ");
-//     scanf("%s", buff);
-//     strcat(a.holder, buff);
-//     bzero(buff, sizeof(buff));
-//     printf("Enter holder's gender: ");
-//     scanf("%s", buff);
-//     strcpy(a.gender, buff);
-//     bzero(buff, sizeof(buff));
-//     printf("Enter holder's date of birth: ");
-//     scanf("%s", buff);
-//     strcpy(a.dob, buff);
-//     printf("Enter holder's address: ");
-//     scanf("%s", address);
-//     strcpy(a.address, address);
-//     bzero(buff, sizeof(buff));
-//     printf("Enter account type (savings/current): ");
-//     scanf("%s", buff);
-//     strcpy(a.type, buff);
-//     bzero(buff, sizeof(buff));
-//     printf("Enter holder's mobile number: ");
-//     scanf("%s", buff);
-//     strcpy(a.mobile, buff);
-//     a.balance = 0.0;
-
-//     write(sockfd, a, sizeof(a));
-//     bzero(buff, sizeof(buff));
-//     read(sockfd, buff, sizeof(buff));
-//     if (strcmp(buff, "false") == 0)
-//         printf("Customer account creation failed!\n");
-//     else
-//         printf("Customer account successfully created!\n");
-// }
-
 void createAccount(int sockfd)
 {
     char buff[MAX];
     char temp[MAX];
+retakeData:
+    system("clear");
     bzero(buff, sizeof(buff));
     bzero(temp, sizeof(temp));
     printf("Enter Account Number: ");
     scanf("%s", buff);
     write(sockfd, buff, sizeof(buff));
+    bzero(buff, sizeof(buff));
+    read(sockfd, buff, sizeof(buff));
+    if (strcmp(buff, "false") == 0)
+    {
+        printf("\nUser already exists!\n");
+        goto retakeData;
+    }
     bzero(buff, sizeof(buff));
     printf("Enter account holder's first name: ");
     scanf("%s", buff);

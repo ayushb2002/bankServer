@@ -17,6 +17,31 @@ struct Account
     char address[50];
 };
 
+int checkAccountAlreadyExists(char accNo[])
+{
+    struct Account a;
+    int flag = 0;
+    FILE *f;
+    if ((f = fopen("bin/bank.bin", "ab+")) == NULL)
+    {
+        printf("Error opening the file!");
+        exit(1);
+    }
+    struct Account res;
+    while (fread(&a, sizeof(struct Account), 1, f))
+    {
+        if (strcmp(accNo, a.accNo) == 0)
+        {
+            res = a;
+            flag = 1;
+            break;
+        }
+    }
+
+    fclose(f);
+    return flag;
+}
+
 void createAccount()
 {
     struct Account a;
@@ -25,6 +50,11 @@ void createAccount()
     bzero(buff, sizeof(buff));
     printf("Enter Account Number: ");
     scanf("%s", buff);
+    if (checkAccountAlreadyExists(buff))
+    {
+        printf("Account Already Exists!");
+        exit(1);
+    }
     strcpy(a.accNo, buff);
     bzero(buff, sizeof(buff));
     printf("Enter account holder's first name: ");
