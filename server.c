@@ -32,12 +32,38 @@ struct Account
     char address[50];
 };
 
-int checkAccountAlreadyExists(char accNo[])
+static char *rand_string(char *str, size_t size)
+{
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (size)
+    {
+        --size;
+        for (size_t n = 0; n < size; n++)
+        {
+            int key = rand() % (int)(sizeof charset - 1);
+            str[n] = charset[key];
+        }
+        str[size] = '\0';
+    }
+    return str;
+}
+
+char *rand_string_alloc(size_t size)
+{
+    char *s = malloc(size + 1);
+    if (s)
+    {
+        rand_string(s, size);
+    }
+    return s;
+}
+
+struct Account returnAccount(char accNo[])
 {
     struct Account a;
     int flag = 0;
     FILE *f;
-    if ((f = fopen("bin/bank.bin", "ab+")) == NULL)
+    if ((f = fopen("bank.bin", "ab+")) == NULL)
     {
         printf("Error opening the file!");
         exit(1);
@@ -54,12 +80,39 @@ int checkAccountAlreadyExists(char accNo[])
     }
 
     fclose(f);
+
+    return res;
+}
+
+int checkAccountAlreadyExists(char accNo[])
+{
+    struct Account a;
+    int flag = 0;
+    FILE *f;
+    if ((f = fopen("bank.bin", "ab+")) == NULL)
+    {
+        printf("Error opening the file!");
+        exit(1);
+    }
+    struct Account res;
+    while (fread(&a, sizeof(struct Account), 1, f))
+    {
+        if (strcmp(accNo, a.accNo) == 0)
+        {
+            res = a;
+            flag = 1;
+            break;
+        }
+    }
+
+    fclose(f);
+
     return flag;
 }
 
 void createAccount(int connfd)
 {
-    printf("Function called!");
+    printf("Create Account called!");
     struct Account a;
     char buff[MAX];
     char bufff[MAX];
@@ -100,7 +153,7 @@ retakeData:
     a.balance = 0.0;
 
     FILE *f;
-    if ((f = fopen("bin/bank.bin", "ab+")) == NULL)
+    if ((f = fopen("bank.bin", "ab+")) == NULL)
     {
         printf("Error opening the file!");
         bzero(buff, sizeof(buff));
@@ -124,6 +177,200 @@ retakeData:
     fclose(f);
 }
 
+void depositAccount(int connfd)
+{
+    char bufff[MAX];
+    char buff[MAX];
+    float balance;
+    FILE *f;
+    FILE *nf;
+    const char *file1 = "temp.bin";
+    const char *file2 = "bank.bin";
+    const char *mode1 = "r";
+    const char *mode2 = "w";
+doesNotExist:
+    bzero(buff, sizeof(buff));
+    read(connfd, buff, sizeof(buff)); // for account number
+    if (!checkAccountAlreadyExists(buff))
+    {
+        bzero(bufff, sizeof(buff));
+        strcpy(bufff, "false");
+        write(connfd, bufff, sizeof(bufff));
+        goto doesNotExist;
+    }
+    else
+    {
+        bzero(bufff, sizeof(bufff));
+        strcpy(bufff, "true");
+        write(connfd, bufff, sizeof(bufff));
+    }
+    read(connfd, &balance, sizeof(balance), 0); // for balance
+
+    if ((nf = fopen(file1, mode2)) == NULL)
+    {
+        printf("Error creating the file!");
+        bzero(buff, sizeof(buff));
+        strcpy(buff, "false");
+        write(connfd, buff, sizeof(buff));
+        exit(1);
+    }
+
+    if ((f = fopen(file2, "ab+")) == NULL)
+    {
+        printf("Error opening the file!");
+        bzero(buff, sizeof(buff));
+        strcpy(buff, "false");
+        write(connfd, buff, sizeof(buff));
+        exit(1);
+    }
+    struct Account acc;
+    while (fread(&acc, sizeof(struct Account), 1, f))
+    {
+        if (strcmp(buff, acc.accNo) == 0)
+        {
+            acc.balance += balance;
+            fwrite(&acc, sizeof(struct Account), 1, nf);
+        }
+        else
+        {
+            fwrite(&acc, sizeof(struct Account), 1, nf);
+        }
+    }
+
+    fclose(f);
+    fclose(nf);
+    remove(file2);
+    rename(file1, file2);
+    printf("Success!\n");
+
+    bzero(buff, sizeof(buff));
+    strcpy(buff, "true");
+    write(connfd, buff, sizeof(buff));
+}
+
+void withdrawAccount(int connfd)
+{
+    char bufff[MAX];
+    char buff[MAX];
+    float balance;
+    FILE *f;
+    FILE *nf;
+    const char *file1 = "temp.bin";
+    const char *file2 = "bank.bin";
+    const char *mode1 = "r";
+    const char *mode2 = "w";
+doesNotExist:
+    bzero(buff, sizeof(buff));
+    read(connfd, buff, sizeof(buff)); // for account number
+    if (!checkAccountAlreadyExists(buff))
+    {
+        bzero(bufff, sizeof(buff));
+        strcpy(bufff, "false");
+        write(connfd, bufff, sizeof(bufff));
+        goto doesNotExist;
+    }
+    else
+    {
+        bzero(bufff, sizeof(bufff));
+        strcpy(bufff, "true");
+        write(connfd, bufff, sizeof(bufff));
+    }
+    read(connfd, &balance, sizeof(balance), 0); // for balance
+
+    if ((nf = fopen(file1, mode2)) == NULL)
+    {
+        printf("Error creating the file!");
+        bzero(buff, sizeof(buff));
+        strcpy(buff, "false");
+        write(connfd, buff, sizeof(buff));
+        exit(1);
+    }
+
+    if ((f = fopen(file2, "ab+")) == NULL)
+    {
+        printf("Error opening the file!");
+        bzero(buff, sizeof(buff));
+        strcpy(buff, "false");
+        write(connfd, buff, sizeof(buff));
+        exit(1);
+    }
+    struct Account acc;
+    while (fread(&acc, sizeof(struct Account), 1, f))
+    {
+        if (strcmp(buff, acc.accNo) == 0)
+        {
+            acc.balance -= balance;
+            fwrite(&acc, sizeof(struct Account), 1, nf);
+        }
+        else
+        {
+            fwrite(&acc, sizeof(struct Account), 1, nf);
+        }
+    }
+
+    fclose(f);
+    fclose(nf);
+    remove(file2);
+    rename(file1, file2);
+    printf("Success!\n");
+
+    bzero(buff, sizeof(buff));
+    strcpy(buff, "true");
+    write(connfd, buff, sizeof(buff));
+}
+
+void checkBalance(int connfd)
+{
+    char bufff[MAX];
+    char buff[MAX];
+    float balance;
+    FILE *f;
+    const char *file = "bank.bin";
+    const char *mode = "r";
+doesNotExist:
+    bzero(buff, sizeof(buff));
+    read(connfd, buff, sizeof(buff)); // for account number
+    if (!checkAccountAlreadyExists(buff))
+    {
+        bzero(bufff, sizeof(bufff));
+        strcpy(bufff, "false");
+        write(connfd, bufff, sizeof(bufff));
+        goto doesNotExist;
+    }
+    else
+    {
+
+        bzero(bufff, sizeof(bufff));
+        strcpy(bufff, "true");
+        write(connfd, bufff, sizeof(bufff));
+    }
+
+    if ((f = fopen(file, mode)) == NULL)
+    {
+        printf("Error opening the file!");
+        bzero(buff, sizeof(buff));
+        strcpy(buff, "false");
+        write(connfd, buff, sizeof(buff));
+        exit(1);
+    }
+
+    struct Account acc;
+    while (fread(&acc, sizeof(struct Account), 1, f))
+    {
+        if (strcmp(buff, acc.accNo) == 0)
+        {
+            balance = acc.balance;
+            break;
+        }
+    }
+
+    write(connfd, &balance, sizeof(balance), 0);
+
+    fclose(f);
+
+    printf("Success!\n");
+}
+
 void postAuthentication(int connfd)
 {
     char buff[MAX];
@@ -138,11 +385,29 @@ void postAuthentication(int connfd)
     {
         if (strcmp(buff, "createAccount") == 0)
         {
-            printf("Comparison Successful!");
+            printf("Create Account \n");
             createAccount(connfd);
         }
+        else if (strcmp(buff, "checkBalance") == 0)
+        {
+            printf("Checking balance \n");
+            checkBalance(connfd);
+        }
+        else if (strcmp(buff, "depositAccount") == 0)
+        {
+            printf("Deposit to account \n");
+            depositAccount(connfd);
+        }
+        else if (strcmp(buff, "withdrawFromAccount") == 0)
+        {
+            printf("Withdraw from account \n");
+            withdrawAccount(connfd);
+        }
         else
+        {
             printf("Did not receive command. %s\n", buff);
+            break;
+        }
 
         bzero(buff, sizeof(buff));
         read(connfd, buff, sizeof(buff));
@@ -157,7 +422,7 @@ void authenticate(int connfd)
 fetchID:
     bzero(buff, MAX);
     read(connfd, buff, sizeof(buff));
-    if ((f = fopen("bin/users.bin", "rb")) == NULL)
+    if ((f = fopen("users.bin", "rb")) == NULL)
     {
         printf("Error opening the file!");
         exit(1);

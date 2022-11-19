@@ -15,7 +15,7 @@ struct User
 void createUser()
 {
     FILE *f;
-    if ((f = fopen("bin/users.bin", "ab+")) == NULL)
+    if ((f = fopen("users.bin", "ab+")) == NULL)
     {
         printf("Error opening the file!");
         exit(1);
@@ -56,7 +56,7 @@ void displayUser()
 {
     FILE *f;
 
-    if ((f = fopen("bin/users.bin", "rb")) == NULL)
+    if ((f = fopen("users.bin", "rb")) == NULL)
     {
         printf("Error opening the file!");
         exit(1);

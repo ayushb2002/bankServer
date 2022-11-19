@@ -22,7 +22,7 @@ int checkAccountAlreadyExists(char accNo[])
     struct Account a;
     int flag = 0;
     FILE *f;
-    if ((f = fopen("bin/bank.bin", "ab+")) == NULL)
+    if ((f = fopen("bank.bin", "ab+")) == NULL)
     {
         printf("Error opening the file!");
         exit(1);
@@ -87,7 +87,7 @@ void createAccount()
     a.balance = 0.0;
 
     FILE *f;
-    if ((f = fopen("bin/bank.bin", "ab+")) == NULL)
+    if ((f = fopen("bank.bin", "ab+")) == NULL)
     {
         printf("Error opening the file!");
         exit(1);
@@ -108,7 +108,7 @@ void returnAccount()
     printf("\nEnter Account Number: ");
     scanf("%s", accNo);
     FILE *f;
-    if ((f = fopen("bin/bank.bin", "ab+")) == NULL)
+    if ((f = fopen("bank.bin", "ab+")) == NULL)
     {
         printf("Error opening the file!");
         exit(1);

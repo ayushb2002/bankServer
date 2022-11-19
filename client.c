@@ -74,9 +74,94 @@ retakeData:
         printf("Customer account successfully created!\n");
 }
 
-void depositToAccount()
+void depositToAccount(int sockfd)
 {
-    return;
+    char buff[MAX];
+    float balance;
+doesNotExist:
+    system("clear");
+    bzero(buff, sizeof(buff));
+    printf("Enter Account Number: ");
+    scanf("%s", buff);
+    write(sockfd, buff, sizeof(buff)); // send account number
+    bzero(buff, sizeof(buff));
+    read(sockfd, buff, sizeof(buff));
+    if (strcmp(buff, "false") == 0)
+    {
+        printf("\nUser does not exists!\n");
+        goto doesNotExist;
+    }
+    bzero(buff, sizeof(buff));
+    printf("Enter amount to be added: ");
+    scanf("%f", &balance);
+    write(sockfd, &balance, sizeof(balance), 0); // send balance to be updated
+    bzero(buff, sizeof(buff));
+    read(sockfd, buff, sizeof(buff)); // read status
+    if (strcmp(buff, "false") == 0)
+    {
+        printf("\nCould not update the balance!\n");
+    }
+    else
+    {
+        printf("\nUser balance updated!\n");
+    }
+}
+
+void withdrawFromAccount(int sockfd)
+{
+    char buff[MAX];
+    float balance;
+doesNotExist:
+    system("clear");
+    bzero(buff, sizeof(buff));
+    printf("Enter Account Number: ");
+    scanf("%s", buff);
+    write(sockfd, buff, sizeof(buff)); // send account number
+    bzero(buff, sizeof(buff));
+    read(sockfd, buff, sizeof(buff));
+    if (strcmp(buff, "false") == 0)
+    {
+        printf("\nUser does not exists!\n");
+        goto doesNotExist;
+    }
+    bzero(buff, sizeof(buff));
+    printf("Enter amount to be withdrawn: ");
+    scanf("%f", &balance);
+    write(sockfd, &balance, sizeof(balance), 0); // send balance to be updated
+    bzero(buff, sizeof(buff));
+    read(sockfd, buff, sizeof(buff)); // read status
+    if (strcmp(buff, "false") == 0)
+    {
+        printf("\nCould not update the balance!\n");
+    }
+    else
+    {
+        printf("\nUser balance updated!\n");
+    }
+}
+
+void checkBalance(int sockfd)
+{
+    char buff[MAX];
+    float balance;
+doesNotExist:
+    system("clear");
+    bzero(buff, sizeof(buff));
+    printf("Enter Account Number: ");
+    scanf("%s", buff);
+    if (strcmp(buff, "-1") == 0)
+        exit(0);
+    write(sockfd, buff, sizeof(buff)); // send account number
+    bzero(buff, sizeof(buff));
+    read(sockfd, buff, sizeof(buff));
+    if (strcmp(buff, "false") == 0)
+    {
+        printf("\nUser does not exists!\n");
+        goto doesNotExist;
+    }
+
+    read(sockfd, &balance, sizeof(balance), 0);
+    printf("User balance is : %f\n", balance);
 }
 
 void bankMenu(int sockfd)
@@ -95,10 +180,7 @@ void bankMenu(int sockfd)
         printf("2. Check balance for account. \n");
         printf("3. Deposit money to account. \n");
         printf("4. Withdraw money from account. \n");
-        printf("5. Customer application for new loan. \n");
-        printf("6. List of loans provided from branch. \n");
-        printf("7. Details of loan taken by account holder. \n");
-        printf("8. Logout \n\n");
+        printf("5. Logout \n\n");
 
         printf("Select your choice: ");
         scanf("%d", &n);
@@ -111,22 +193,24 @@ void bankMenu(int sockfd)
             createAccount(sockfd);
             break;
         case 2:
+            bzero(buff, sizeof(buff));
+            strcpy(buff, "checkBalance");
+            write(sockfd, buff, sizeof(buff));
+            checkBalance(sockfd);
             break;
         case 3:
             bzero(buff, sizeof(buff));
             strcpy(buff, "depositAccount");
             write(sockfd, buff, sizeof(buff));
-            depositToAccount();
+            depositToAccount(sockfd);
             break;
         case 4:
+            bzero(buff, sizeof(buff));
+            strcpy(buff, "withdrawFromAccount");
+            write(sockfd, buff, sizeof(buff));
+            withdrawFromAccount(sockfd);
             break;
         case 5:
-            break;
-        case 6:
-            break;
-        case 7:
-            break;
-        case 8:
             bzero(buff, sizeof(buff));
             strcpy(buff, "logout");
             write(sockfd, buff, sizeof(buff));
