@@ -70,7 +70,6 @@ char *rand_string_alloc(size_t size)
 void omitToBlockChain(char accNo[], char desc[])
 {
     char *fileName = "block/temp.bin";
-    char *mode = "w+";
     char *latest = "block/latestfile.txt";
     char buff[100];
     struct Blockchain b;
@@ -80,17 +79,22 @@ void omitToBlockChain(char accNo[], char desc[])
 
     FILE *f;
     FILE *pf;
-    if ((f = fopen(fileName, mode)) == NULL)
+    if ((f = fopen(fileName, "w+")) == NULL)
         exit(1);
 
-    if ((pf = fopen(latest, mode)) == NULL)
+    if ((pf = fopen(latest, "r+")) == NULL)
         exit(1);
 
-    fscanf(pf, "%s", buff);
+    fgets(buff, 25, pf);
     strcpy(b.previousKey, buff);
     strcpy(buff, rand_string_alloc(25));
     strcpy(b.currentKey, buff);
     fwrite(&b, sizeof(struct Blockchain), 1, f);
+    fclose(pf);
+
+    if ((pf = fopen(latest, "w+")) == NULL)
+        exit(1);
+
     fputs(buff, pf);
     fclose(f);
     fclose(pf);
@@ -98,7 +102,6 @@ void omitToBlockChain(char accNo[], char desc[])
     char newFile[] = "block/";
     strcat(newFile, b.currentKey);
     strcat(newFile, ".bin");
-    printf("%s \n", newFile);
     rename(fileName, newFile);
 }
 

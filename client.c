@@ -240,7 +240,7 @@ receiveId:
         goto receiveId;
     }
 
-recieveUsername:
+receiveUsername:
     bzero(buff, sizeof(buff));
     printf("\nEnter username: ");
     scanf("%s", buff);
@@ -250,7 +250,7 @@ recieveUsername:
     if ((strncmp(buff, "false", 5)) == 0)
     {
         printf("Client username does not exist...\n");
-        goto recieveUsername;
+        goto receiveUsername;
     }
 receivePassword:
     bzero(buff, sizeof(buff));

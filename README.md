@@ -1,7 +1,7 @@
 ### Commands to compile -
 
-- gcc server.c -o server
-- gcc client.c -o client
+- gcc server.c -o server -lm -fno-stack-protector
+- gcc client.c -o client -lm -fno-stack-protector
 
 ### Commands to run -
 
