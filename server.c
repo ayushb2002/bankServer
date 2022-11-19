@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <time.h>
 #define MAX 20
 #define PORT 8080
 #define SA struct sockaddr
@@ -30,6 +31,14 @@ struct Account
     char gender[MAX];
     char type[MAX];
     char address[50];
+};
+
+struct Blockchain
+{
+    char accountNumber[MAX];
+    char description[100];
+    char previousKey[25];
+    char currentKey[25];
 };
 
 static char *rand_string(char *str, size_t size)
@@ -56,6 +65,41 @@ char *rand_string_alloc(size_t size)
         rand_string(s, size);
     }
     return s;
+}
+
+void omitToBlockChain(char accNo[], char desc[])
+{
+    char *fileName = "block/temp.bin";
+    char *mode = "w+";
+    char *latest = "block/latestfile.txt";
+    char buff[100];
+    struct Blockchain b;
+
+    strcpy(b.accountNumber, accNo);
+    strcpy(b.description, desc);
+
+    FILE *f;
+    FILE *pf;
+    if ((f = fopen(fileName, mode)) == NULL)
+        exit(1);
+
+    if ((pf = fopen(latest, mode)) == NULL)
+        exit(1);
+
+    fscanf(pf, "%s", buff);
+    strcpy(b.previousKey, buff);
+    strcpy(buff, rand_string_alloc(25));
+    strcpy(b.currentKey, buff);
+    fwrite(&b, sizeof(struct Blockchain), 1, f);
+    fputs(buff, pf);
+    fclose(f);
+    fclose(pf);
+
+    char newFile[] = "block/";
+    strcat(newFile, b.currentKey);
+    strcat(newFile, ".bin");
+    printf("%s \n", newFile);
+    rename(fileName, newFile);
 }
 
 struct Account returnAccount(char accNo[])
@@ -175,6 +219,10 @@ retakeData:
         write(connfd, buff, sizeof(buff));
     }
     fclose(f);
+
+    char desc[] = "Created account ";
+    strcat(desc, a.accNo);
+    omitToBlockChain(a.accNo, desc);
 }
 
 void depositAccount(int connfd)
@@ -242,6 +290,10 @@ doesNotExist:
     remove(file2);
     rename(file1, file2);
     printf("Success!\n");
+
+    char desc[] = "Deposited to account ";
+    strcat(desc, buff);
+    omitToBlockChain(buff, desc);
 
     bzero(buff, sizeof(buff));
     strcpy(buff, "true");
@@ -313,6 +365,10 @@ doesNotExist:
     remove(file2);
     rename(file1, file2);
     printf("Success!\n");
+
+    char desc[] = "Withdrawn from account ";
+    strcat(desc, buff);
+    omitToBlockChain(buff, desc);
 
     bzero(buff, sizeof(buff));
     strcpy(buff, "true");
