@@ -12,3 +12,13 @@
 
 - gcc users.c -o users
 - ./users
+
+### To read blocks from blockchain -
+
+- gcc blockchain.c -o blockchain
+- ./blockchain
+
+### For customer to check out their account status -
+
+- gcc bank.c -o bank
+- ./bank

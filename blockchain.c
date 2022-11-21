@@ -4,11 +4,9 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#define MAX 20
-
 struct Blockchain
 {
-    char accountNumber[MAX];
+    char accountNumber[20];
     char description[100];
     char previousKey[25];
     char currentKey[25];

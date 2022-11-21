@@ -85,10 +85,13 @@ void omitToBlockChain(char accNo[], char desc[])
     if ((pf = fopen(latest, "r+")) == NULL)
         exit(1);
 
+retakeKey:
     fgets(buff, 25, pf);
     strcpy(b.previousKey, buff);
     strcpy(buff, rand_string_alloc(25));
     strcpy(b.currentKey, buff);
+    if (strcmp(b.currentKey, b.previousKey) == 0)
+        goto retakeKey;
     fwrite(&b, sizeof(struct Blockchain), 1, f);
     fclose(pf);
 
