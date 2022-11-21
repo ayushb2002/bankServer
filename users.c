@@ -12,6 +12,24 @@ struct User
     char password[20];
 };
 
+int checkUserExist(char id[])
+{
+    FILE *f;
+    if ((f = fopen("users.bin", "r")) == NULL)
+        exit(1);
+
+    struct User u;
+
+    while (fread(&u, sizeof(struct User), 1, f))
+    {
+        if (strcmp(u.ID, id) == 0)
+            return 1;
+    }
+
+    fclose(f);
+    return 0;
+}
+
 void createUser()
 {
     FILE *f;
@@ -28,8 +46,15 @@ void createUser()
     char user[20];
     char password[20];
 
+retakeForm:
+    system("clear");
     printf("Enter employee id: ");
     scanf("%s", id);
+    if (checkUserExist(id))
+    {
+        printf("User already exists!\n");
+        goto retakeForm;
+    }
     printf("Enter first name: ");
     scanf("%s", fname);
     printf("Enter last name: ");
@@ -66,7 +91,6 @@ void displayUser()
     while (fread(&u, sizeof(struct User), 1, f))
     {
         printf("\nId: %s \nFirst name: %s \nLast Name: %s \nUsername: %s \nPassword: %s \n", u.ID, u.fname, u.lname, u.user, u.password);
-        break;
     }
 
     fclose(f);
